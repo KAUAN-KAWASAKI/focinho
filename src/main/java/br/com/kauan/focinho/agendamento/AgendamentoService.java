@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import br.com.kauan.focinho.dono.DonoRepository;
 import br.com.kauan.focinho.servico.Porte;
 import br.com.kauan.focinho.servico.Servico;
 import br.com.kauan.focinho.servico.ServicoRepository;
@@ -17,19 +18,22 @@ public class AgendamentoService {
 
 	private final AgendamentoRepository agendamentos;
 	private final ServicoRepository servicos;
+	private final DonoRepository donos;
 	private final HorarioFuncionamento funcionamento;
 	private final Clock clock;
 
-	public AgendamentoService(AgendamentoRepository agendamentos, ServicoRepository servicos,
+	public AgendamentoService(AgendamentoRepository agendamentos, ServicoRepository servicos, DonoRepository donos,
 			HorarioFuncionamento funcionamento, Clock clock) {
 		this.agendamentos = agendamentos;
 		this.servicos = servicos;
+		this.donos = donos;
 		this.funcionamento = funcionamento;
 		this.clock = clock;
 	}
 
-	public List<Agendamento> listar() {
-		return agendamentos.findAllByOrderByInicioAsc();
+	/** Só os agendamentos do dono informado. */
+	public List<Agendamento> listar(Long donoId) {
+		return agendamentos.findByDonoIdOrderByInicioAsc(donoId);
 	}
 
 	/**
@@ -37,14 +41,14 @@ public class AgendamentoService {
 	 * impede que duas requisições passem pela checagem de conflito ao mesmo tempo
 	 * (vale para uma única instância da aplicação).
 	 */
-	public synchronized Agendamento agendar(String nomePet, String nomeTutor, TipoServico tipo, Porte porte,
-			LocalDateTime inicio) {
+	public synchronized Agendamento agendar(Long donoId, String nomePet, String nomeTutor, TipoServico tipo,
+			Porte porte, LocalDateTime inicio) {
 		Servico servico = servicos.findByTipoAndPorte(tipo, porte)
 				.orElseThrow(() -> new AgendamentoInvalidoException("Serviço não cadastrado para este porte"));
-		Agendamento novo = new Agendamento(nomePet, nomeTutor, servico, inicio);
+		Agendamento novo = new Agendamento(donos.getReferenceById(donoId), nomePet, nomeTutor, servico, inicio);
 
 		validarHorario(novo.periodo());
-		validarConflito(novo.periodo());
+		validarConflito(donoId, novo.periodo());
 
 		return agendamentos.save(novo);
 	}
@@ -65,10 +69,12 @@ public class AgendamentoService {
 		}
 	}
 
-	private void validarConflito(Periodo novo) {
+	/** O conflito vale dentro da agenda do dono: pet shops diferentes não se bloqueiam. */
+	private void validarConflito(Long donoId, Periodo novo) {
 		LocalDate dia = novo.inicio().toLocalDate();
 		boolean conflita = agendamentos
-				.findByInicioGreaterThanEqualAndInicioLessThan(dia.atStartOfDay(), dia.plusDays(1).atStartOfDay())
+				.findByDonoIdAndInicioGreaterThanEqualAndInicioLessThan(donoId, dia.atStartOfDay(),
+						dia.plusDays(1).atStartOfDay())
 				.stream()
 				.anyMatch(existente -> novo.conflitaCom(existente.periodo()));
 		if (conflita) {

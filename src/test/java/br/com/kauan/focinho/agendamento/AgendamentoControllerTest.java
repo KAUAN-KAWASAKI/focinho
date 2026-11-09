@@ -1,5 +1,7 @@
 package br.com.kauan.focinho.agendamento;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,6 +17,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import br.com.kauan.focinho.dono.Dono;
+import br.com.kauan.focinho.dono.DonoRepository;
+import br.com.kauan.focinho.dono.DonoUserDetails;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -27,9 +33,16 @@ class AgendamentoControllerTest {
 	@Autowired
 	AgendamentoRepository repository;
 
+	@Autowired
+	DonoRepository donos;
+
+	DonoUserDetails logado;
+
 	@BeforeEach
 	void limpar() {
 		repository.deleteAll();
+		donos.deleteAll();
+		logado = DonoUserDetails.de(donos.save(new Dono("Ana", "ana@petshop.com", "hash")));
 	}
 
 	private static String corpo(String nomePet, String tipo, String porte, String inicio) {
@@ -39,7 +52,8 @@ class AgendamentoControllerTest {
 	}
 
 	private org.springframework.test.web.servlet.ResultActions agendar(String json) throws Exception {
-		return mvc.perform(post("/api/agendamentos").contentType(MediaType.APPLICATION_JSON).content(json));
+		return mvc.perform(post("/api/agendamentos").with(user(logado)).with(csrf())
+				.contentType(MediaType.APPLICATION_JSON).content(json));
 	}
 
 	@Test
@@ -83,7 +97,7 @@ class AgendamentoControllerTest {
 		agendar(corpo("Segundo", "BANHO", "P", "2030-01-08T11:00:00")).andExpect(status().isCreated());
 		agendar(corpo("Primeiro", "BANHO", "P", "2030-01-08T09:00:00")).andExpect(status().isCreated());
 
-		mvc.perform(get("/api/agendamentos")).andExpect(status().isOk())
+		mvc.perform(get("/api/agendamentos").with(user(logado))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(2))
 				.andExpect(jsonPath("$[0].nomePet").value("Primeiro"))
 				.andExpect(jsonPath("$[1].nomePet").value("Segundo"));
@@ -91,8 +105,9 @@ class AgendamentoControllerTest {
 
 	@Test
 	void catalogoTemNoveServicosComDuracaoPorPorte() throws Exception {
-		mvc.perform(get("/api/servicos")).andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(9));
-		mvc.perform(get("/api/servicos/TOSA/G")).andExpect(status().isOk())
+		mvc.perform(get("/api/servicos").with(user(logado))).andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(9));
+		mvc.perform(get("/api/servicos/TOSA/G").with(user(logado))).andExpect(status().isOk())
 				.andExpect(jsonPath("$.duracaoMinutos").value(90))
 				.andExpect(jsonPath("$.descricao").value("Tosa"));
 	}
