@@ -13,6 +13,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
+import br.com.kauan.focinho.dono.Dono;
+import br.com.kauan.focinho.dono.DonoRepository;
 import br.com.kauan.focinho.servico.Porte;
 import br.com.kauan.focinho.servico.TipoServico;
 
@@ -35,28 +37,58 @@ class AgendamentoServiceTest {
 	@Autowired
 	AgendamentoRepository repository;
 
+	@Autowired
+	DonoRepository donos;
+
+	Long donoId;
+
 	@BeforeEach
 	void limpar() {
 		repository.deleteAll();
+		donos.deleteAll();
+		donoId = donos.save(new Dono("Ana", "ana@petshop.com", "hash")).getId();
+	}
+
+	// ---- cada dono tem a própria agenda ----
+
+	@Test
+	void donosDiferentesPodemUsarOMesmoHorario() {
+		Long outroDono = donos.save(new Dono("Caio", "caio@petshop.com", "hash")).getId();
+
+		banhoP(TERCA.withHour(9));
+		service.agendar(outroDono, "Mel", "Bia", TipoServico.BANHO, Porte.P, TERCA.withHour(9));
+
+		assertEquals(1, service.listar(donoId).size());
+		assertEquals(1, service.listar(outroDono).size());
+	}
+
+	@Test
+	void listagemMostraSoOsAgendamentosDoProprioDono() {
+		Long outroDono = donos.save(new Dono("Caio", "caio@petshop.com", "hash")).getId();
+		banhoP(TERCA.withHour(9));
+		service.agendar(outroDono, "Mel", "Bia", TipoServico.BANHO, Porte.P, TERCA.withHour(11));
+
+		assertEquals("Rex", service.listar(donoId).get(0).getNomePet());
+		assertEquals("Mel", service.listar(outroDono).get(0).getNomePet());
 	}
 
 	private Agendamento banhoP(LocalDateTime inicio) {
-		return service.agendar("Rex", "Ana", TipoServico.BANHO, Porte.P, inicio);
+		return service.agendar(donoId, "Rex", "Ana", TipoServico.BANHO, Porte.P, inicio);
 	}
 
 	// ---- duração depende do porte ----
 
 	@Test
 	void fimEhInicioMaisDuracaoDoServicoNoPorte() {
-		Agendamento tosaG = service.agendar("Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(9));
+		Agendamento tosaG = service.agendar(donoId, "Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(9));
 
 		assertEquals(TERCA.withHour(10).withMinute(30), tosaG.getFim());
 	}
 
 	@Test
 	void mesmoServicoTemDuracaoDiferentePorPorte() {
-		Agendamento p = service.agendar("Mel", "Ana", TipoServico.BANHO, Porte.P, TERCA.withHour(9));
-		Agendamento m = service.agendar("Bob", "Caio", TipoServico.BANHO, Porte.M, TERCA.withHour(11));
+		Agendamento p = service.agendar(donoId, "Mel", "Ana", TipoServico.BANHO, Porte.P, TERCA.withHour(9));
+		Agendamento m = service.agendar(donoId, "Bob", "Caio", TipoServico.BANHO, Porte.M, TERCA.withHour(11));
 
 		assertEquals(30, java.time.Duration.between(p.getInicio(), p.getFim()).toMinutes());
 		assertEquals(45, java.time.Duration.between(m.getInicio(), m.getFim()).toMinutes());
@@ -66,14 +98,14 @@ class AgendamentoServiceTest {
 
 	@Test
 	void sobreposicaoParcialConflita() {
-		service.agendar("Bob", "Caio", TipoServico.BANHO, Porte.M, TERCA.withHour(9)); // 09:00-09:45
+		service.agendar(donoId, "Bob", "Caio", TipoServico.BANHO, Porte.M, TERCA.withHour(9)); // 09:00-09:45
 
 		assertThrows(ConflitoDeHorarioException.class, () -> banhoP(TERCA.withHour(9).withMinute(30)));
 	}
 
 	@Test
 	void novoDentroDeExistenteConflita() {
-		service.agendar("Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(9)); // 09:00-10:30
+		service.agendar(donoId, "Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(9)); // 09:00-10:30
 
 		assertThrows(ConflitoDeHorarioException.class, () -> banhoP(TERCA.withHour(9).withMinute(30)));
 	}
@@ -83,7 +115,7 @@ class AgendamentoServiceTest {
 		banhoP(TERCA.withHour(10)); // 10:00-10:30
 
 		assertThrows(ConflitoDeHorarioException.class,
-				() -> service.agendar("Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(9).withMinute(30)));
+				() -> service.agendar(donoId, "Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(9).withMinute(30)));
 	}
 
 	@Test
@@ -117,7 +149,7 @@ class AgendamentoServiceTest {
 
 		banhoP(TERCA.plusDays(1).withHour(9));
 
-		assertEquals(2, service.listar().size());
+		assertEquals(2, service.listar(donoId).size());
 	}
 
 	@Test
@@ -126,7 +158,7 @@ class AgendamentoServiceTest {
 
 		assertThrows(ConflitoDeHorarioException.class, () -> banhoP(TERCA.withHour(9)));
 
-		assertEquals(1, service.listar().size());
+		assertEquals(1, service.listar(donoId).size());
 	}
 
 	// ---- horário passado ----
@@ -181,7 +213,7 @@ class AgendamentoServiceTest {
 	@Test
 	void servicoLongoQueUltrapassaOFechamentoEhRejeitado() {
 		assertThrows(AgendamentoInvalidoException.class,
-				() -> service.agendar("Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(17)));
+				() -> service.agendar(donoId, "Thor", "Bia", TipoServico.TOSA, Porte.G, TERCA.withHour(17)));
 	}
 
 	@Test
