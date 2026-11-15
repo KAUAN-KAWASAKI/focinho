@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focinho · agenda de banho e tosa</title>
+<meta name="description" content="Agenda de banho e tosa para pet shops, sem conflito de horário.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23F26B1D'/%3E%3Cg fill='%23fff'%3E%3Cellipse cx='32' cy='41' rx='13' ry='10'/%3E%3Cellipse cx='16' cy='28' rx='5' ry='7'/%3E%3Cellipse cx='27' cy='19' rx='5' ry='7'/%3E%3Cellipse cx='37' cy='19' rx='5' ry='7'/%3E%3Cellipse cx='48' cy='28' rx='5' ry='7'/%3E%3C/g%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #fff8ef;
+  --card: #ffffff;
+  --ink: #1c2b2a;
+  --muted: #5d6c6a;
+  --line: #eadfce;
+  --accent: #f26b1d;
+  --accent-ink: #ffffff;
+  --accent-soft: #fde6d6;
+  --teal: #1f5f5b;
+  --teal-soft: #dcefec;
+  --danger: #b3261e;
+  --danger-soft: #fbe3e1;
+  --ok: #1d6b3a;
+  --ok-soft: #dff3e5;
+  --radius: 16px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14201f;
+    --card: #1c2d2b;
+    --ink: #f2ece3;
+    --muted: #a9b9b6;
+    --line: #2e4441;
+    --accent: #ff8a4c;
+    --accent-ink: #1c1206;
+    --accent-soft: #3a2a1d;
+    --teal: #7fd3cb;
+    --teal-soft: #223c39;
+    --danger: #ff9b92;
+    --danger-soft: #3d2220;
+    --ok: #86d9a0;
+    --ok-soft: #1f3a29;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px 48px; }
+header.topo {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 18px 0;
+}
+.marca { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.35rem; letter-spacing: -0.02em; }
+.marca svg { width: 36px; height: 36px; flex: none; }
+.sessao { display: none; align-items: center; gap: 12px; font-size: .95rem; color: var(--muted); }
+.sessao.on { display: flex; }
+.sessao strong { color: var(--ink); }
+h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.15; margin: 8px 0 8px; letter-spacing: -0.02em; }
+h2 { font-size: 1.15rem; margin: 0 0 14px; }
+p.lead { color: var(--muted); margin: 0 0 24px; max-width: 52ch; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+label { display: block; font-weight: 600; font-size: .92rem; margin: 14px 0 6px; }
+label:first-of-type { margin-top: 0; }
+input, select {
+  width: 100%; min-height: 46px; padding: 10px 12px;
+  font: inherit; color: var(--ink); background: var(--bg);
+  border: 1.5px solid var(--line); border-radius: 12px;
+}
+input:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 3px solid var(--teal); outline-offset: 2px;
+}
+.row2 + .row2, .row2 + label { margin-top: 14px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+button {
+  font: inherit; font-weight: 700; cursor: pointer;
+  min-height: 46px; padding: 10px 18px; border-radius: 12px; border: 0;
+  background: var(--accent); color: var(--accent-ink);
+  transition: transform .12s ease, filter .12s ease;
+}
+button:hover { filter: brightness(1.05); }
+button:active { transform: scale(.98); }
+button[disabled] { opacity: .6; cursor: progress; }
+button.ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--line); }
+button.full { width: 100%; margin-top: 18px; }
+.abas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 4px; margin-bottom: 18px; }
+.abas button { background: transparent; color: var(--muted); min-height: 40px; }
+.abas button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.aviso { margin-top: 14px; padding: 10px 12px; border-radius: 12px; font-size: .95rem; display: none; }
+.aviso.on { display: block; }
+.aviso.erro { background: var(--danger-soft); color: var(--danger); }
+.aviso.ok { background: var(--ok-soft); color: var(--ok); }
+.resumo { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: var(--teal-soft); color: var(--teal); font-size: .95rem; min-height: 44px; }
+#auth { max-width: 460px; margin: 24px auto 0; }
+#app { display: none; }
+#app.on { display: block; }
+.grade { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 20px; align-items: start; }
+.dia { margin: 0 0 18px; }
+.dia h3 { font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+.item { display: grid; grid-template-columns: 92px 1fr; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; margin-bottom: 8px; background: var(--bg); }
+.hora { font-weight: 800; font-variant-numeric: tabular-nums; color: var(--teal); }
+.hora small { display: block; font-weight: 600; color: var(--muted); }
+.pet { font-weight: 700; }
+.det { color: var(--muted); font-size: .92rem; }
+.tag { display: inline-block; padding: 1px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font-weight: 700; font-size: .8rem; margin-left: 6px; }
+.vazio { text-align: center; padding: 28px 12px; color: var(--muted); border: 1.5px dashed var(--line); border-radius: 14px; }
+.dica { color: var(--muted); font-size: .85rem; margin-top: 8px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 760px) {
+  .grade { grid-template-columns: 1fr; }
+  .row2 { grid-template-columns: 1fr; }
+  .item { grid-template-columns: 1fr; gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topo">
+    <div class="marca">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#F26B1D"/><g fill="#fff"><ellipse cx="32" cy="41" rx="13" ry="10"/><ellipse cx="16" cy="28" rx="5" ry="7"/><ellipse cx="27" cy="19" rx="5" ry="7"/><ellipse cx="37" cy="19" rx="5" ry="7"/><ellipse cx="48" cy="28" rx="5" ry="7"/></g></svg>
+      Focinho
+    </div>
+    <div class="sessao" id="sessao">
+      <span>Olá, <strong id="nomeDono"></strong></span>
+      <button type="button" class="ghost" id="sair">Sair</button>
+    </div>
+  </header>
+
+  <!-- Entrar / criar conta -->
+  <main id="auth">
+    <h1>Agenda de banho e tosa, sem horário duplicado.</h1>
+    <p class="lead">Entre para ver a agenda do seu pet shop. Cada atendimento tem a duração certa para o porte do pet e nunca se sobrepõe a outro.</p>
+    <section class="card" aria-labelledby="tituloAuth">
+      <h2 class="sr" id="tituloAuth">Acesso do pet shop</h2>
+      <div class="abas" role="tablist">
+        <button type="button" role="tab" id="abaEntrar" aria-selected="true" aria-controls="formEntrar">Entrar</button>
+        <button type="button" role="tab" id="abaCriar" aria-selected="false" aria-controls="formCriar">Criar conta</button>
+      </div>
+
+      <form id="formEntrar" novalidate>
+        <label for="loginEmail">E-mail</label>
+        <input id="loginEmail" type="email" autocomplete="username" required>
+        <label for="loginSenha">Senha</label>
+        <input id="loginSenha" type="password" autocomplete="current-password" required>
+        <button type="submit" class="full">Entrar</button>
+      </form>
+
+      <form id="formCriar" novalidate hidden>
+        <label for="criarNome">Nome do pet shop</label>
+        <input id="criarNome" type="text" autocomplete="organization" required>
+        <label for="criarEmail">E-mail</label>
+        <input id="criarEmail" type="email" autocomplete="email" required>
+        <label for="criarSenha">Senha (8 a 72 caracteres)</label>
+        <input id="criarSenha" type="password" autocomplete="new-password" minlength="8" maxlength="72" required>
+        <button type="submit" class="full">Criar conta e entrar</button>
+      </form>
+
+      <div class="aviso" id="avisoAuth" role="alert"></div>
+    </section>
+  </main>
+
+  <!-- Agenda -->
+  <main id="app">
+    <h1>Agenda</h1>
+    <p class="lead" id="funcionamento">Escolha o serviço e o horário. O sistema calcula quando termina e avisa se houver conflito.</p>
+    <div class="grade">
+      <section class="card" aria-labelledby="tituloNovo">
+        <h2 id="tituloNovo">Novo agendamento</h2>
+        <form id="formAgendar" novalidate>
+          <div class="row2">
+            <div>
+              <label for="nomePet">Pet</label>
+              <input id="nomePet" type="text" required autocomplete="off">
+            </div>
+            <div>
+              <label for="nomeTutor">Tutor</label>
+              <input id="nomeTutor" type="text" required autocomplete="off">
+            </div>
+          </div>
+          <div class="row2">
+            <div>
+              <label for="tipo">Serviço</label>
+              <select id="tipo" required></select>
+            </div>
+            <div>
+              <label for="porte">Porte</label>
+              <select id="porte" required>
+                <option value="P">Pequeno (P)</option>
+                <option value="M">Médio (M)</option>
+                <option value="G">Grande (G)</option>
+              </select>
+            </div>
+          </div>
+          <label for="inicio">Início</label>
+          <input id="inicio" type="datetime-local" step="900" required>
+          <div class="resumo" id="resumo" aria-live="polite"></div>
+          <button type="submit" class="full">Agendar</button>
+          <div class="aviso" id="avisoAgenda" role="alert"></div>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="tituloAgenda">
+        <h2 id="tituloAgenda">Próximos atendimentos</h2>
+        <div id="lista"></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var catalogo = [];
+
+  // ---------- utilidades ----------
+  function cookie(nome) {
+    var par = document.cookie.split('; ').find(function (c) { return c.indexOf(nome + '=') === 0; });
+    return par ? decodeURIComponent(par.slice(nome.length + 1)) : '';
+  }
+
+  // O Spring entrega o token CSRF num cookie; devolvemos no cabeçalho em toda escrita.
+  function api(caminho, opcoes) {
+    opcoes = opcoes || {};
+    var cab = Object.assign({ 'Accept': 'application/json' }, opcoes.headers || {});
+    var metodo = (opcoes.method || 'GET').toUpperCase();
+    if (metodo !== 'GET') {
+      var token = cookie('XSRF-TOKEN');
+      if (token) { cab['X-XSRF-TOKEN'] = token; }
+    }
+    return fetch(caminho, Object.assign({}, opcoes, { headers: cab, credentials: 'same-origin' }));
+  }
+
+  function json(caminho, metodo, corpo) {
+    return api(caminho, {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(corpo)
+    });
+  }
+
+  function aviso(el, texto, tipo) {
+    el.textContent = texto || '';
+    el.className = 'aviso' + (texto ? ' on ' + (tipo || 'erro') : '');
+  }
+
+  function mensagemDeErro(resposta, corpo) {
+    if (corpo && corpo.message) { return corpo.message; }
+    if (resposta.status === 400) { return 'Confira os campos: algum valor está vazio ou inválido.'; }
+    if (resposta.status === 401) { return 'Sua sessão expirou. Entre de novo.'; }
+    if (resposta.status === 403) { return 'A página ficou desatualizada. Recarregue e tente de novo.'; }
+    if (resposta.status === 409) { return 'Já existe um agendamento que se sobrepõe a este horário.'; }
+    return 'Algo deu errado. Tente de novo em instantes.';
+  }
+
+  function lerJson(resposta) {
+    return resposta.json().catch(function () { return null; });
+  }
+
+  function duracaoTexto(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    if (!h) { return m + ' min'; }
+    return m ? h + ' h ' + m + ' min' : h + ' h';
+  }
+
+  var moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  var rotuloTipo = { BANHO: 'Banho', TOSA: 'Tosa', BANHO_E_TOSA: 'Banho e tosa' };
+
+  function hhmm(iso) { return iso.slice(11, 16); }
+
+  function diaLongo(iso) {
+    var p = iso.slice(0, 10).split('-');
+    var d = new Date(+p[0], +p[1] - 1, +p[2]);
+    return d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+  }
+
+  // ---------- telas ----------
+  function mostrarAuth() {
+    trocarAba(true);
+    $('app').classList.remove('on');
+    $('auth').style.display = '';
+    $('sessao').classList.remove('on');
+  }
+
+  function mostrarApp(dono) {
+    $('nomeDono').textContent = dono.nome;
+    $('sessao').classList.add('on');
+    $('auth').style.display = 'none';
+    $('app').classList.add('on');
+    return carregarCatalogo().then(carregarAgenda);
+  }
+
+  function trocarAba(entrar) {
+    $('abaEntrar').setAttribute('aria-selected', String(entrar));
+    $('abaCriar').setAttribute('aria-selected', String(!entrar));
+    $('formEntrar').hidden = !entrar;
+    $('formCriar').hidden = entrar;
+    aviso($('avisoAuth'), '');
+  }
+  $('abaEntrar').addEventListener('click', function () { trocarAba(true); });
+  $('abaCriar').addEventListener('click', function () { trocarAba(false); });
+
+  // ---------- login / cadastro ----------
+  function entrar(email, senha) {
+    var corpo = new URLSearchParams({ username: email, password: senha });
+    return api('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'text/html' },
+      body: corpo.toString()
+    }).then(function (r) {
+      if (r.url.indexOf('error') !== -1) { throw new Error('E-mail ou senha incorretos.'); }
+      return api('/api/donos/eu');
+    }).then(function (r) {
+      if (!r.ok) { throw new Error('Não foi possível entrar. Tente de novo.'); }
+      return r.json();
+    });
+  }
+
+  $('formEntrar').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var botao = e.submitter || e.target.querySelector('button[type=submit]');
+    var email = $('loginEmail').value.trim(), senha = $('loginSenha').value;
+    if (!email || !senha) { aviso($('avisoAuth'), 'Informe e-mail e senha.'); return; }
+    botao.disabled = true;
+    entrar(email, senha).then(function (dono) {
+      aviso($('avisoAuth'), '');
+      $('loginSenha').value = '';
+      return mostrarApp(dono);
+    }).catch(function (err) {
+      aviso($('avisoAuth'), err.message);
+    }).then(function () { botao.disabled = false; });
+  });
+
+  $('formCriar').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var botao = e.submitter || e.target.querySelector('button[type=submit]');
+    var nome = $('criarNome').value.trim(), email = $('criarEmail').value.trim(), senha = $('criarSenha').value;
+    if (!nome || !email || senha.length < 8) {
+      aviso($('avisoAuth'), 'Preencha o nome, um e-mail válido e uma senha de pelo menos 8 caracteres.');
+      return;
+    }
+    botao.disabled = true;
+    json('/api/donos', 'POST', { nome: nome, email: email, senha: senha }).then(function (r) {
+      if (r.status === 409) { throw new Error('Este e-mail já tem conta. Use a aba Entrar.'); }
+      if (!r.ok) { return lerJson(r).then(function (c) { throw new Error(mensagemDeErro(r, c)); }); }
+      return entrar(email, senha);
+    }).then(function (dono) {
+      $('criarSenha').value = '';
+      aviso($('avisoAuth'), '');
+      return mostrarApp(dono);
+    }).catch(function (err) {
+      aviso($('avisoAuth'), err.message);
+    }).then(function () { botao.disabled = false; });
+  });
+
+  $('sair').addEventListener('click', function () {
+    api('/logout', { method: 'POST', headers: { 'Accept': 'text/html' } }).catch(function () { }).then(function () {
+      $('lista').textContent = '';
+      mostrarAuth();
+    });
+  });
+
+  // ---------- catálogo ----------
+  function carregarCatalogo() {
+    return api('/api/servicos').then(function (r) { return r.json(); }).then(function (lista) {
+      catalogo = lista;
+      var tipos = [];
+      lista.forEach(function (s) { if (tipos.indexOf(s.tipo) === -1) { tipos.push(s.tipo); } });
+      var sel = $('tipo');
+      var atual = sel.value;
+      sel.textContent = '';
+      tipos.forEach(function (t) {
+        var o = document.createElement('option');
+        o.value = t;
+        o.textContent = rotuloTipo[t] || t;
+        sel.appendChild(o);
+      });
+      if (atual) { sel.value = atual; }
+      atualizarResumo();
+    });
+  }
+
+  function atualizarResumo() {
+    var tipo = $('tipo').value, porte = $('porte').value, inicio = $('inicio').value;
+    var s = catalogo.find(function (x) { return x.tipo === tipo && x.porte === porte; });
+    var el = $('resumo');
+    if (!s) { el.textContent = ''; return; }
+    var txt = (rotuloTipo[tipo] || tipo) + ' · porte ' + porte + ' · ' + duracaoTexto(s.duracaoMinutos) + ' · ' + moeda.format(s.preco);
+    if (inicio) {
+      var d = new Date(inicio);
+      if (!isNaN(d)) {
+        var fim = new Date(d.getTime() + s.duracaoMinutos * 60000);
+        txt += ' · termina às ' + String(fim.getHours()).padStart(2, '0') + ':' + String(fim.getMinutes()).padStart(2, '0');
+      }
+    }
+    el.textContent = txt;
+  }
+  ['tipo', 'porte', 'inicio'].forEach(function (id) { $(id).addEventListener('input', atualizarResumo); });
+
+  // ---------- agenda ----------
+  function carregarAgenda() {
+    return api('/api/agendamentos').then(function (r) {
+      if (r.status === 401) { mostrarAuth(); return []; }
+      return r.json();
+    }).then(desenharLista);
+  }
+
+  function desenharLista(itens) {
+    var raiz = $('lista');
+    raiz.textContent = '';
+    if (!itens.length) {
+      var v = document.createElement('div');
+      v.className = 'vazio';
+      v.textContent = 'Nenhum atendimento marcado ainda. Use o formulário ao lado para agendar o primeiro.';
+      raiz.appendChild(v);
+      return;
+    }
+    var porDia = {};
+    var ordem = [];
+    itens.forEach(function (a) {
+      var dia = a.inicio.slice(0, 10);
+      if (!porDia[dia]) { porDia[dia] = []; ordem.push(dia); }
+      porDia[dia].push(a);
+    });
+    ordem.forEach(function (dia) {
+      var bloco = document.createElement('div');
+      bloco.className = 'dia';
+      var h = document.createElement('h3');
+      h.textContent = diaLongo(porDia[dia][0].inicio);
+      bloco.appendChild(h);
+      porDia[dia].forEach(function (a) {
+        var item = document.createElement('div');
+        item.className = 'item';
+
+        var hora = document.createElement('div');
+        hora.className = 'hora';
+        hora.textContent = hhmm(a.inicio);
+        var ate = document.createElement('small');
+        ate.textContent = 'até ' + hhmm(a.fim);
+        hora.appendChild(ate);
+
+        var corpo = document.createElement('div');
+        var pet = document.createElement('div');
+        pet.className = 'pet';
+        pet.textContent = a.nomePet;
+        var tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = 'porte ' + a.porte;
+        pet.appendChild(tag);
+        var det = document.createElement('div');
+        det.className = 'det';
+        det.textContent = (rotuloTipo[a.tipo] || a.tipo) + ' · tutor: ' + a.nomeTutor;
+        corpo.appendChild(pet);
+        corpo.appendChild(det);
+
+        item.appendChild(hora);
+        item.appendChild(corpo);
+        bloco.appendChild(item);
+      });
+      raiz.appendChild(bloco);
+    });
+  }
+
+  $('formAgendar').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var botao = e.submitter || e.target.querySelector('button[type=submit]');
+    var dados = {
+      nomePet: $('nomePet').value.trim(),
+      nomeTutor: $('nomeTutor').value.trim(),
+      tipo: $('tipo').value,
+      porte: $('porte').value,
+      inicio: $('inicio').value
+    };
+    if (!dados.nomePet || !dados.nomeTutor || !dados.inicio) {
+      aviso($('avisoAgenda'), 'Preencha o pet, o tutor e o horário de início.');
+      return;
+    }
+    botao.disabled = true;
+    json('/api/agendamentos', 'POST', dados).then(function (r) {
+      if (r.status === 201) {
+        return r.json().then(function (a) {
+          aviso($('avisoAgenda'), a.nomePet + ' agendado(a) das ' + hhmm(a.inicio) + ' às ' + hhmm(a.fim) + '.', 'ok');
+          $('nomePet').value = '';
+          $('nomeTutor').value = '';
+          return carregarAgenda();
+        });
+      }
+      return lerJson(r).then(function (c) { aviso($('avisoAgenda'), mensagemDeErro(r, c)); });
+    }).catch(function () {
+      aviso($('avisoAgenda'), 'Sem conexão com o servidor. Tente de novo.');
+    }).then(function () { botao.disabled = false; });
+  });
+
+  // ---------- início: já existe sessão? ----------
+  api('/api/donos/eu').then(function (r) {
+    if (r.ok) { return r.json().then(mostrarApp); }
+    mostrarAuth();
+  }).catch(mostrarAuth);
+})();
+</script>
+</body>
+</html>

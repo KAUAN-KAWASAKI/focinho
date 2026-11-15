@@ -2,6 +2,7 @@ package br.com.kauan.focinho.agendamento;
 
 import java.time.LocalDateTime;
 
+import br.com.kauan.focinho.dono.Dono;
 import br.com.kauan.focinho.servico.Servico;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,6 +25,9 @@ public class Agendamento {
 	private String nomeTutor;
 
 	@ManyToOne(optional = false)
+	private Dono dono;
+
+	@ManyToOne(optional = false)
 	private Servico servico;
 
 	@Column(nullable = false)
@@ -35,7 +39,8 @@ public class Agendamento {
 	protected Agendamento() {
 	}
 
-	public Agendamento(String nomePet, String nomeTutor, Servico servico, LocalDateTime inicio) {
+	public Agendamento(Dono dono, String nomePet, String nomeTutor, Servico servico, LocalDateTime inicio) {
+		this.dono = dono;
 		this.nomePet = nomePet;
 		this.nomeTutor = nomeTutor;
 		this.servico = servico;
@@ -49,6 +54,10 @@ public class Agendamento {
 
 	public Long getId() {
 		return id;
+	}
+
+	public Dono getDono() {
+		return dono;
 	}
 
 	public String getNomePet() {

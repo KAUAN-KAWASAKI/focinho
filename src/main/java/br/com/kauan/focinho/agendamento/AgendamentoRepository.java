@@ -7,7 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
 
-	List<Agendamento> findByInicioGreaterThanEqualAndInicioLessThan(LocalDateTime de, LocalDateTime ate);
+	List<Agendamento> findByDonoIdAndInicioGreaterThanEqualAndInicioLessThan(Long donoId, LocalDateTime de,
+			LocalDateTime ate);
 
-	List<Agendamento> findAllByOrderByInicioAsc();
+	List<Agendamento> findByDonoIdOrderByInicioAsc(Long donoId);
 }
