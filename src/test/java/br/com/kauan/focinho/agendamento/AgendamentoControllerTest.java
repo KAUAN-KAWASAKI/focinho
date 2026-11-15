@@ -64,6 +64,17 @@ class AgendamentoControllerTest {
 	}
 
 	@Test
+	void errosDeRegraTrazemOMotivoNoCorpoDaResposta() throws Exception {
+		agendar(corpo("Rex", "BANHO", "P", "2030-01-08T09:00:00")).andExpect(status().isCreated());
+
+		agendar(corpo("Mel", "BANHO", "P", "2030-01-08T09:15:00")).andExpect(status().isConflict())
+				.andExpect(jsonPath("$.message").value("Já existe um agendamento que se sobrepõe a este horário"));
+
+		agendar(corpo("Bidu", "BANHO_E_TOSA", "G", "2030-01-08T17:00:00")).andExpect(status().isUnprocessableContent())
+				.andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("08:00")));
+	}
+
+	@Test
 	void sobreposicaoRetorna409() throws Exception {
 		agendar(corpo("Rex", "BANHO", "P", "2030-01-08T09:00:00")).andExpect(status().isCreated());
 
